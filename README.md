@@ -1,2 +1,19 @@
 # THN-ex1
 REST API with simple audit features
+
+
+Context:
+  We want to trace all the requests made to a single endpoint /feature, writing an audit
+log with some information about the request and saving the number of requests made
+by each IP.
+  The API will have another endpoint /metrics to query, given a specific IP, how many
+requests have been made from this IP to the first endpoint.
+
+Additional info:
+  ● The GET /feature endpoint will return anything (hello world text is enough!).
+  ● After accessing the GET endpoint, you should write (stdout is valid) some
+  information about the request, including a timestamp, the IP, headers, etc.
+  ● The GET /metrics endpoint will receive the IP as a query parameter (mandatory)
+  and will return a JSON with the number of requests.
+  ● It is not necessary to have any kind of persistence,you can save the number of
+  requests in a temporary resource, in memory, etc.
