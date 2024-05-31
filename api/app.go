@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sync"
+
+	t "THN-ex1/types"
 )
 
 type App interface {
@@ -13,22 +14,17 @@ type App interface {
 	ClientKey() string
 	Host() string
 	GinMode() string
-	AddReqIp(string)
-	GetMetrics(string) (int, error)
+	AddReqIp(reqInfo t.ReqInfo)
+	GetIPMetricsLogs(string) ([]t.ReqInfo, error)
 }
 
 type app struct {
-	env       string
-	port      string
-	clientKey string
-	host      string
-	ginMode   string
-	reqIPs    *reqIPs
-}
-
-type reqIPs struct {
-	sync.RWMutex
-	m map[string]int
+	env        string
+	port       string
+	clientKey  string
+	host       string
+	ginMode    string
+	IPsMetrics *t.ReqIPs
 }
 
 func NewApp() (App, error) {
@@ -53,12 +49,12 @@ func NewApp() (App, error) {
 
 	fmt.Println("Successfully loaded app environment variables")
 	return &app{
-		env:       env,
-		port:      port,
-		clientKey: clientKey,
-		host:      host,
-		ginMode:   ginMode,
-		reqIPs:    &reqIPs{m: make(map[string]int)},
+		env:        env,
+		port:       port,
+		clientKey:  clientKey,
+		host:       host,
+		ginMode:    ginMode,
+		IPsMetrics: &t.ReqIPs{Requests: make(map[string][]t.ReqInfo)},
 	}, nil
 }
 
@@ -67,19 +63,24 @@ func (a *app) Port() string      { return a.port }
 func (a *app) ClientKey() string { return a.clientKey }
 func (a *app) Host() string      { return a.host }
 func (a *app) GinMode() string   { return a.ginMode }
-func (a *app) AddReqIp(ip string) {
-	a.reqIPs.Lock()
-	defer a.reqIPs.Unlock()
-	a.reqIPs.m[ip] += 1
+
+func (a *app) AddReqIp(reqInfo t.ReqInfo) {
+	a.IPsMetrics.Lock()
+	defer a.IPsMetrics.Unlock()
+
+	metrics := a.IPsMetrics.Requests[reqInfo.IP]
+	metrics = append(metrics, reqInfo)
+	a.IPsMetrics.Requests[reqInfo.IP] = metrics
 }
-func (a *app) GetMetrics(match string) (int, error) {
-	a.reqIPs.RLock()
-	defer a.reqIPs.RUnlock()
-	
-	amount, ok := a.reqIPs.m[match]
+
+func (a *app) GetIPMetricsLogs(ip string) ([]t.ReqInfo, error) {
+	a.IPsMetrics.RLock()
+	defer a.IPsMetrics.RUnlock()
+
+	reqs, ok := a.IPsMetrics.Requests[ip]
 	if !ok {
-		return 0, errors.New("no match for ip")
+		return nil, errors.New("ip not found in metrics")
 	}
 
-	return amount, nil
+	return reqs, nil
 }

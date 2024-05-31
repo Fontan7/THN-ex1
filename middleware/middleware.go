@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"THN-ex1/types"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,7 +34,11 @@ func CorsConfig() gin.HandlerFunc {
 func CheckAPIKey(clientKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if clientKey != c.GetHeader("X-API-Key") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid api key")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, types.ErrorResponse{
+				Code: http.StatusUnauthorized,
+				Error: "invalid api key",
+			})
+			return
 		}
 
 		c.Next()

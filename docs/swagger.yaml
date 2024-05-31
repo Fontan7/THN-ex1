@@ -1,5 +1,25 @@
 definitions:
-  api.GetMetricsResponse:
+  types.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      error:
+        type: string
+    type: object
+  types.GetFeatureResponse:
+    properties:
+      code:
+        type: integer
+      headers:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      response:
+        type: string
+    type: object
+  types.GetMetricsResponse:
     properties:
       code:
         type: integer
@@ -7,9 +27,24 @@ definitions:
         properties:
           amount:
             type: integer
-          ip:
-            type: string
+          ip_metrics:
+            items:
+              $ref: '#/definitions/types.ReqInfo'
+            type: array
         type: object
+    type: object
+  types.ReqInfo:
+    properties:
+      headers:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      ip:
+        type: string
+      time:
+        type: string
     type: object
 externalDocs:
   description: OpenAPI
@@ -50,11 +85,11 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/types.GetFeatureResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/types.ErrorResponse'
       summary: Returns happy response and logs the ip
       tags:
       - feature
@@ -78,19 +113,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.GetMetricsResponse'
+            $ref: '#/definitions/types.GetMetricsResponse'
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/types.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/types.ErrorResponse'
       summary: Returns matching metrics for the given IP
       tags:
       - metrics

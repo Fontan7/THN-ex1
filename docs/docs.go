@@ -60,13 +60,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.GetFeatureResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     }
                 }
@@ -102,25 +102,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.GetMetricsResponse"
+                            "$ref": "#/definitions/types.GetMetricsResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     }
                 }
@@ -128,7 +134,38 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.GetMetricsResponse": {
+        "types.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.GetFeatureResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "response": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.GetMetricsResponse": {
             "type": "object",
             "properties": {
                 "code": {
@@ -140,10 +177,33 @@ const docTemplate = `{
                         "amount": {
                             "type": "integer"
                         },
-                        "ip": {
+                        "ip_metrics": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.ReqInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "types.ReqInfo": {
+            "type": "object",
+            "properties": {
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
                             "type": "string"
                         }
                     }
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
                 }
             }
         }

@@ -10,25 +10,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-type StandardResponse struct {
-	Code     int               `json:"code"`
-	Headers  map[string]string `json:"headers"`
-	Response string            `json:"response"`
-}
-
-type GetMetricsResponse struct {
-	Code     int `json:"code"`
-	Response struct {
-		Ip     string `json:"ip"`
-		Amount int    `json:"amount"`
-	} `json:"response"`
-}
-
-type ErrorResponse struct {
-	Code  int    `json:"code"`
-	Error string `json:"error"`
-}
-
 // InitRouter initializes and returns a new Gin engine with configured routes.
 func InitRouter(app App) *gin.Engine {
 	gin.SetMode(app.GinMode())

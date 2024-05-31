@@ -1,52 +1,88 @@
-package api
+package api_test
 
 import (
+	"THN-ex1/api"
+	ty "THN-ex1/types"
+	"os"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-func TestNewApp(t *testing.T) {
-	// Test successful creation
+func Test_NewAppSuccess(t *testing.T) {
+	os.Setenv("ENV", "local")
+	os.Setenv("PORT", ":8080")
+	os.Setenv("CLIENT_KEY", "THN_KEY")
+	os.Setenv("SERVER_HOST", "127.0.0.1")
+	os.Setenv("GIN_MODE", "debug")
 
-	app, err := NewApp()
-	assert.NoError(t, err)
-	assert.NotNil(t, app)
-	assert.Equal(t, "local", app.Env())
-	assert.Equal(t, ":8080", app.Port())
-	assert.Equal(t, "THN_KEY", app.ClientKey())
-	assert.Equal(t, "127.0.0.1", app.Host())
-}
-
-func TestAppMethods(t *testing.T) {
-	app := &app{
-		env:       "local",
-		port:      ":8080",
-		clientKey: "THN_KEY",
-		host:      "127.0.0.1",
-		ginMode:   "debug",
-		reqIPs:    &reqIPs{m: make(map[string]int)},
+	app, err := api.NewApp()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
 
-	assert.Equal(t, "local", app.Env())
-	assert.Equal(t, ":8080", app.Port())
-	assert.Equal(t, "THN_KEY", app.ClientKey())
-	assert.Equal(t, "127.0.0.1", app.Host())
-	assert.Equal(t, "debug", app.GinMode())
+	if app.Env() != "local" {
+		t.Errorf("expected env to be 'local', got %s", app.Env())
+	}
+	if app.Port() != ":8080" {
+		t.Errorf("expected port to be ':8080', got %s", app.Port())
+	}
+	if app.ClientKey() != "THN_KEY" {
+		t.Errorf("expected clientKey to be 'THN_KEY', got %s", app.ClientKey())
+	}
+	if app.Host() != "127.0.0.1" {
+		t.Errorf("expected host to be '127.0.0.1', got %s", app.Host())
+	}
+	if app.GinMode() != "debug" {
+		t.Errorf("expected ginMode to be 'debug', got %s", app.GinMode())
+	}
+}
 
-	app.AddReqIp("192.168.1.1")
-	app.AddReqIp("192.168.1.1")
-	app.AddReqIp("192.168.1.2")
+func Test_AddReqIpAndGetIPMetricsLogs(t *testing.T) {
+	app, _ := api.NewApp()
+	reqInfo := ty.ReqInfo{
+		IP:   "127.0.0.1",
+		Time: "2023-05-01T12:34:56Z",
+		Headers: map[string][]string{
+			"User-Agent": {"Mozilla/5.0"},
+		},
+	}
 
-	amount, err := app.GetMetrics("192.168.1.1")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, amount)
+	app.AddReqIp(reqInfo)
 
-	amount, err = app.GetMetrics("192.168.1.2")
-	assert.NoError(t, err)
-	assert.Equal(t, 1, amount)
+	reqs, err := app.GetIPMetricsLogs("127.0.0.1")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 
-	amount, err = app.GetMetrics("192.168.1.3")
-	assert.Error(t, err)
-	assert.Equal(t, 0, amount)
+	if len(reqs) != 1 {
+		t.Fatalf("expected 1 request, got %d", len(reqs))
+	}
+
+	if !compareReqInfo(reqs[0], reqInfo) {
+		t.Errorf("expected request %v, got %v", reqInfo, reqs[0])
+	}
+
+	_, err = app.GetIPMetricsLogs("192.168.0.1")
+	if err == nil {
+		t.Errorf("expected error for non-existing IP, got none")
+	}
+}
+
+func compareReqInfo(a, b ty.ReqInfo) bool {
+	if a.IP != b.IP || a.Time != b.Time {
+		return false
+	}
+	if len(a.Headers) != len(b.Headers) {
+		return false
+	}
+	for k, v := range a.Headers {
+		if len(v) != len(b.Headers[k]) {
+			return false
+		}
+		for i := range v {
+			if v[i] != b.Headers[k][i] {
+				return false
+			}
+		}
+	}
+	return true
 }

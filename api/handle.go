@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	"THN-ex1/types"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,30 +41,31 @@ func handleHealthCheck(c *gin.Context) {
 // @Description
 // @Tags         feature
 // @Produce      json
-// @Success      200  {object}  string
-// @Failure      500  {object}  string
+// @Success      200  {object}  types.GetFeatureResponse
+// @Failure      500  {object}  types.ErrorResponse
 // @Router       /v1/feature [get]
 func handleGetFeature(c *gin.Context, app App) {
+	headers := c.Request.Header
 	ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, ErrorResponse{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, types.ErrorResponse{
 			Code:  http.StatusInternalServerError,
 			Error: fmt.Sprintf("could not get ip: %v", err),
 		})
 		return
 	}
 
-	app.AddReqIp(ip)
-	t := time.Now().Format(time.RFC3339)
-	headers := make(map[string]string)
-	for key, values := range c.Request.Header {
-		headers[key] = values[0]
+	reqInfo := types.ReqInfo{
+		IP:      ip,
+		Time:    time.Now().Format(time.RFC3339),
+		Headers: headers,
 	}
+	app.AddReqIp(reqInfo)
 
-	c.JSON(http.StatusOK, StandardResponse{
+	c.JSON(http.StatusOK, types.GetFeatureResponse{
 		Code:     http.StatusOK,
 		Headers:  headers,
-		Response: "Hello THN backenders ☺ your IP is: " + ip + " at time: " + t,
+		Response: "Hello THN backenders ☺ your IP looks like this: " + ip,
 	})
 }
 
@@ -73,16 +76,13 @@ func handleGetFeature(c *gin.Context, app App) {
 // @Produce      json
 // @Param        ip    path     string  true  "IP to search for"
 // @Param        X-Auth header   string  true  "Authentication token"
-// @Success      200   {object}  GetMetricsResponse
-// @Failure      400   {object}  string
-// @Failure      404   {object}  string
-// @Failure      500   {object}  string
+// @Success      200   {object}  types.GetMetricsResponse
+// @Failure      400   {object}  types.ErrorResponse
+// @Failure		 401 	{object} types.ErrorResponse
+// @Failure      404   {object}  types.ErrorResponse
+// @Failure      500   {object}  types.ErrorResponse
 // @Router       /v1/metrics/{ip} [get]
 func handleGetMetrics(c *gin.Context, app App) {
-	type Res struct {
-		Ip     string `json:"ip"`
-		Amount int    `json:"amount"`
-	}
 	findIp := c.Param("ip")
 	ipRegex := `^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`
 	validIP := regexp.MustCompile(ipRegex).MatchString(findIp)
@@ -91,17 +91,17 @@ func handleGetMetrics(c *gin.Context, app App) {
 		return
 	}
 
-	amount, err := app.GetMetrics(findIp)
+	ipMetrics, err := app.GetIPMetricsLogs(findIp)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, GetMetricsResponse{
+	response := types.GetMetricsResponse{
 		Code: http.StatusOK,
-		Response: Res{
-			Ip:     findIp,
-			Amount: amount,
-		},
-	})
+	}
+	response.Response.Amount = len(ipMetrics)
+	response.Response.IpMetrics = ipMetrics
+
+	c.JSON(http.StatusOK, response)
 }

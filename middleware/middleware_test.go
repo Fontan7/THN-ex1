@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCorsConfig(t *testing.T) {
+func Test_CorsConfig(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(CorsConfig())
@@ -31,7 +31,7 @@ func TestCorsConfig(t *testing.T) {
 	assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
 }
 
-func TestCheckAPIKey(t *testing.T) {
+func Test_CheckAPIKey(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	clientKey := "valid_api_key"
@@ -57,11 +57,11 @@ func TestCheckAPIKey(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.Equal(t, "\"invalid api key\"", w.Body.String())
+		assert.JSONEq(t, `{"code":401,"error":"invalid api key"}`, w.Body.String())
 	})
 }
 
-func TestErrorManager(t *testing.T) {
+func Test_ErrorManager(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(ErrorManager())
