@@ -1,0 +1,100 @@
+definitions:
+  api.GetMetricsResponse:
+    properties:
+      code:
+        type: integer
+      response:
+        properties:
+          amount:
+            type: integer
+          ip:
+            type: string
+        type: object
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+info:
+  contact:
+    email: TODO@gmail.com
+    name: API Support
+    url: https://TODO.com
+  description: app description
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: THN-ex1
+  version: "0.1"
+paths:
+  /health:
+    get:
+      description: always returns OK
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Health check
+      tags:
+      - health
+  /v1/feature:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Returns happy response and logs the ip
+      tags:
+      - feature
+  /v1/metrics/{ip}:
+    get:
+      description: Returns the number of metrics that match the given IP parameter
+      parameters:
+      - description: IP to search for
+        in: path
+        name: ip
+        required: true
+        type: string
+      - description: Authentication token
+        in: header
+        name: X-Auth
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetMetricsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Returns matching metrics for the given IP
+      tags:
+      - metrics
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
