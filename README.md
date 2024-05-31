@@ -19,7 +19,7 @@ Additional info: <br>
   ● It is not necessary to have any kind of persistence,you can save the number of
   requests in a temporary resource, in memory, etc. <br>
 
-=====================================================================================================
+===========================================================================
 
 ##How to use?
 
