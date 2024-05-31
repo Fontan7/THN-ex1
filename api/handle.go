@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,10 +53,16 @@ func handleGetFeature(c *gin.Context, app App) {
 	}
 
 	app.AddReqIp(ip)
+	t := time.Now().Format(time.RFC3339)
+	headers := make(map[string]string)
+	for key, values := range c.Request.Header {
+		headers[key] = values[0]
+	}
 
 	c.JSON(http.StatusOK, StandardResponse{
 		Code:     http.StatusOK,
-		Response: "Hello THN backenders ☺ your Ip is: " + ip,
+		Headers:  headers,
+		Response: "Hello THN backenders ☺ your IP is: " + ip + " at time: " + t,
 	})
 }
 

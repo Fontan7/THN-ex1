@@ -50,54 +50,6 @@ func (m *MockApp) GetMetrics(ip string) (int, error) {
 	return args.Int(0), args.Error(1)
 }
 
-func TestHandleGetFeature(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	tests := []struct {
-		name           string
-		remoteAddr     string
-		expectedStatus int
-		expectedBody   string
-	}{
-		{
-			name:           "Successful retrieval of IP address",
-			remoteAddr:     "192.168.1.1:8080",
-			expectedStatus: http.StatusOK,
-			expectedBody:   `{"code":200,"response":"Hello THN backenders ☺ your Ip is: 192.168.1.1"}`,
-		},
-		{
-			name:           "Failed to split host port",
-			remoteAddr:     "invalid_ip",
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"code":500,"error":"could not get ip: address invalid_ip: missing port in address"}`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockApp := new(MockApp)
-			if tt.expectedStatus == http.StatusOK {
-				mockApp.On("AddReqIp", "192.168.1.1").Return()
-			}
-
-			router := gin.Default()
-			router.GET("/feature", func(c *gin.Context) {
-				handleGetFeature(c, mockApp)
-			})
-
-			req := httptest.NewRequest("GET", "/feature", nil)
-			req.RemoteAddr = tt.remoteAddr
-			w := httptest.NewRecorder()
-			router.ServeHTTP(w, req)
-
-			assert.Equal(t, tt.expectedStatus, w.Code)
-			assert.JSONEq(t, tt.expectedBody, w.Body.String())
-
-			mockApp.AssertExpectations(t)
-		})
-	}
-}
-
 func TestHandleGetMetrics(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

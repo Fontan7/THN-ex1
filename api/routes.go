@@ -9,13 +9,15 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
 type StandardResponse struct {
-	Code     int    `json:"code"`
-	Response string `json:"response"`
+	Code     int               `json:"code"`
+	Headers  map[string]string `json:"headers"`
+	Response string            `json:"response"`
 }
 
 type GetMetricsResponse struct {
-	Code     int    `json:"code"`
+	Code     int `json:"code"`
 	Response struct {
 		Ip     string `json:"ip"`
 		Amount int    `json:"amount"`
