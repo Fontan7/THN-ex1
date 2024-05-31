@@ -12,7 +12,6 @@ The API will have another endpoint `/metrics` to query, given a specific IP, how
 - The GET `/metrics` endpoint will receive the IP as a query parameter (mandatory) and will return a JSON with the number of requests.
 - It is not necessary to have any kind of persistence; you can save the number of requests in a temporary resource, in memory, etc.
 
-===========================================================================
 
 ## How to use?
 
