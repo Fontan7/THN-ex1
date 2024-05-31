@@ -24,7 +24,7 @@ Additional info: <br>
 ##How to use?
 
 If you are rocking windows simply run the .exe file and then hit localhost on port 8080. <br>
-You can also navigate to the root of this project directory and run: go run .. <br>
+You can also navigate to the root of this project directory and run: go run . <br>
 
 Then you might want to hit url /swagger/index.html for docs about the api w.w  <br>
 There you will find /health, v1/feature and v1/metrics endpoints documented, <br>
