@@ -9,6 +9,7 @@ type ReqIPs struct {
 
 type ReqInfo struct {
 	IP      string              `json:"ip"`
+	Url     string              `json:"url"`
 	Time    string              `json:"time"`
 	Headers map[string][]string `json:"headers"`
 }

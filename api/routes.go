@@ -34,18 +34,20 @@ func registerHealthAndSwaggerRoutes(router *gin.Engine) {
 
 // registerAPIRoutes sets up API versioning and their specific routes.
 func registerVersionedAPIRoutes(router *gin.Engine, app App) {
-	v1 := router.Group("/v1")
-	routesWithLogsV1(v1, app)
-	routesWithNoLogsV1(v1, app)
+    v1 := router.Group("/v1")
+    {
+        routesWithLogsV1(v1.Group("/public"), app)
+        routesWithNoLogsV1(v1.Group("/private"), app)
+    }
 }
 
-// definePublicRoutes registers public routes. /v1/public/...
 func routesWithLogsV1(rg *gin.RouterGroup, app App) {
-	rg.GET("/feature", func(c *gin.Context) { handleGetFeature(c, app) })
+    rg.Use(middleware.LogIpMetrics(app.IPMetrics()))
+    rg.GET("/feature", func(c *gin.Context) { handleGetFeature(c) })
 }
 
-// definePrivateRoutes registers private routes requiring authentication.
+
 func routesWithNoLogsV1(rg *gin.RouterGroup, app App) {
-	rg.Use(middleware.CheckAPIKey(app.ClientKey())) // API key check middleware
-	rg.GET("/metrics/:ip", func(c *gin.Context) { handleGetMetrics(c, app) })
+    rg.Use(middleware.CheckAPIKey(app.ClientKey()))
+    rg.GET("/metrics/:ip", func(c *gin.Context) { handleGetMetrics(c, app) })
 }

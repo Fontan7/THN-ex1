@@ -42,37 +42,15 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/v1/feature": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feature"
-                ],
-                "summary": "Returns happy response and logs the ip",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.GetFeatureResponse"
-                        }
-                    },
-                    "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "type": "string"
                         }
                     }
                 }
             }
         },
-        "/v1/metrics/{ip}": {
+        "/v1/private/metrics/{ip}": {
             "get": {
                 "description": "Returns the number of metrics that match the given IP parameter",
                 "produces": [
@@ -108,25 +86,50 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "type": "string"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "type": "string"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "type": "string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public/feature": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "feature"
+                ],
+                "summary": "Returns happy response and logs the ip",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.GetFeatureResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -134,17 +137,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "types.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
         "types.GetFeatureResponse": {
             "type": "object",
             "properties": {
@@ -203,6 +195,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "time": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }

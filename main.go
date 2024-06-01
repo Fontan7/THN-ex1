@@ -30,10 +30,9 @@ func main() {
 	}
 
 	router := api.InitRouter(app)
+	fmt.Printf("Server running on port%s", app.Port())
 	err = router.Run(app.Port())
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Server is running on port: ", app.Port())
 }

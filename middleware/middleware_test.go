@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"THN-ex1/types"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -80,4 +81,32 @@ func Test_ErrorManager(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.Contains(t, w.Body.String(), "test error")
 	assert.Contains(t, w.Body.String(), "test error")
+}
+
+func TestLogIpMetrics(t *testing.T) {
+	r := gin.New()
+	reqIPs := &types.ReqIPs{
+		Requests: make(map[string][]types.ReqInfo),
+	}
+	r.Use(LogIpMetrics(reqIPs))
+	r.GET("/test", func(c *gin.Context) {c.JSON(http.StatusOK, gin.H{"message": "success"})})
+
+	// Create a test server
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/test", nil)
+	req.RemoteAddr = "192.168.1.1:12345" // Set the remote address for the request
+
+	// Perform the request
+	r.ServeHTTP(w, req)
+
+	// Check the response
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.JSONEq(t, `{"message": "success"}`, w.Body.String())
+
+	// Check the IP metrics
+	reqIPs.Lock()
+	defer reqIPs.Unlock()
+	assert.Contains(t, reqIPs.Requests, "192.168.1.1")
+	assert.Len(t, reqIPs.Requests["192.168.1.1"], 1)
+	assert.Equal(t, "/test", reqIPs.Requests["192.168.1.1"][0].Url)
 }

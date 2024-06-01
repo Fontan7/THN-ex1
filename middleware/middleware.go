@@ -4,6 +4,7 @@ import (
 	"THN-ex1/types"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -35,7 +36,7 @@ func CheckAPIKey(clientKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if clientKey != c.GetHeader("X-API-Key") {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, types.ErrorResponse{
-				Code: http.StatusUnauthorized,
+				Code:  http.StatusUnauthorized,
 				Error: "invalid api key",
 			})
 			return
@@ -75,5 +76,36 @@ func ErrorManager() gin.HandlerFunc {
 				"errors": errors,
 			})
 		}
+	}
+}
+
+func LogIpMetrics(ips *types.ReqIPs) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		headers := c.Request.Header
+		url := c.Request.URL.Path
+		ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, types.ErrorResponse{
+				Code:  http.StatusInternalServerError,
+				Error: fmt.Sprintf("could not get ip: %v", err),
+			})
+			return
+		}
+
+		reqInfo := types.ReqInfo{
+			IP:      ip,
+			Url:     url,
+			Time:    time.Now().Format(time.RFC3339),
+			Headers: headers,
+		}
+
+		ips.Lock()
+		metrics := ips.Requests[reqInfo.IP]
+		metrics = append(metrics, reqInfo)
+
+		ips.Requests[reqInfo.IP] = metrics
+		ips.Unlock()
+
+		c.Next()
 	}
 }

@@ -1,9 +1,7 @@
 package api
 
 import (
-	"errors"
 	"fmt"
-	"os"
 
 	t "THN-ex1/types"
 )
@@ -14,17 +12,16 @@ type App interface {
 	ClientKey() string
 	Host() string
 	GinMode() string
-	AddReqIp(reqInfo t.ReqInfo)
-	GetIPMetricsLogs(string) ([]t.ReqInfo, error)
+	IPMetrics() *t.ReqIPs
 }
 
 type app struct {
-	env        string
-	port       string
-	clientKey  string
-	host       string
-	ginMode    string
-	IPsMetrics *t.ReqIPs
+	env       string
+	port      string
+	clientKey string
+	host      string
+	ginMode   string
+	metrics   *t.ReqIPs
 }
 
 func NewApp() (App, error) {
@@ -44,43 +41,25 @@ func NewApp() (App, error) {
 	if host == "" {
 		return nil, fmt.Errorf("SERVER_HOST variable is empty")
 	}
-
-	ginMode := os.Getenv("GIN_MODE")
+	ginMode := "release"
+	if ginMode == "" {
+		return nil, fmt.Errorf("GIN_MODE variable is empty")
+	}
 
 	fmt.Println("Successfully loaded app environment variables")
 	return &app{
-		env:        env,
-		port:       port,
-		clientKey:  clientKey,
-		host:       host,
-		ginMode:    ginMode,
-		IPsMetrics: &t.ReqIPs{Requests: make(map[string][]t.ReqInfo)},
+		env:       env,
+		port:      port,
+		clientKey: clientKey,
+		host:      host,
+		ginMode:   ginMode,
+		metrics:   &t.ReqIPs{Requests: make(map[string][]t.ReqInfo)},
 	}, nil
 }
 
-func (a *app) Env() string       { return a.env }
-func (a *app) Port() string      { return a.port }
-func (a *app) ClientKey() string { return a.clientKey }
-func (a *app) Host() string      { return a.host }
-func (a *app) GinMode() string   { return a.ginMode }
-
-func (a *app) AddReqIp(reqInfo t.ReqInfo) {
-	a.IPsMetrics.Lock()
-	defer a.IPsMetrics.Unlock()
-
-	metrics := a.IPsMetrics.Requests[reqInfo.IP]
-	metrics = append(metrics, reqInfo)
-	a.IPsMetrics.Requests[reqInfo.IP] = metrics
-}
-
-func (a *app) GetIPMetricsLogs(ip string) ([]t.ReqInfo, error) {
-	a.IPsMetrics.RLock()
-	defer a.IPsMetrics.RUnlock()
-
-	reqs, ok := a.IPsMetrics.Requests[ip]
-	if !ok {
-		return nil, errors.New("ip not found in metrics")
-	}
-
-	return reqs, nil
-}
+func (a *app) Env() string          { return a.env }
+func (a *app) Port() string         { return a.port }
+func (a *app) ClientKey() string    { return a.clientKey }
+func (a *app) Host() string         { return a.host }
+func (a *app) GinMode() string      { return a.ginMode }
+func (a *app) IPMetrics() *t.ReqIPs { return a.metrics }
