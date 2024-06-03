@@ -106,6 +106,7 @@ func LogIpMetrics(ips *types.ReqIPs) gin.HandlerFunc {
 		ips.Requests[reqInfo.IP] = metrics
 		ips.Unlock()
 
+		fmt.Println(metrics)
 		c.Next()
 	}
 }
